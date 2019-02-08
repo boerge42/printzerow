@@ -16,10 +16,9 @@ recht entspannt:
 ```
 
 Mit dem Tool cupsctl sollte man folgendes einstellen:
-
-die lokalen, am Server angeschlossenen, Drucker im Netzwerk freigeben
-CUPS über das Netzwerk administrierbar machen
-die automatische Druckervermittlung aktivieren
+* die lokalen, am Server angeschlossenen, Drucker im Netzwerk freigeben
+* CUPS über das Netzwerk administrierbar machen
+* die automatische Druckervermittlung aktivieren
 ```
 > sudo cupsctl --share-printers  --remote-admin --remote-printers
 ```
