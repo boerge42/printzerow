@@ -71,6 +71,8 @@ struct menu_pos_t
 #define DISPLAY_MYWEATHER	3
 #define DISPLAY_FORECAST	4
 #define DISPLAY_SYSINFO		5
+#define DISPLAY_HALT		6
+#define DISPLAY_REBOOT		7
 
 #define TIME_SCREENSAVER_ON 60000    // 60s
 
@@ -78,6 +80,8 @@ struct menu_pos_t
 // analoge Uhr
 #define TWO_PI 6.283185307
 
+// forward fuer reboot() aus linux/reboot.h
+int reboot(int magic, int magic2, int cmd, void *arg);
 
 // ************************************************
 // ************************************************
@@ -103,7 +107,7 @@ void key_3(void);
 void set_button_functions(void);
 void display_screen (void);
 void display_screensaver(void);
-
-
+void display_reboot(void);
+void display_halt(void);
 
 #endif

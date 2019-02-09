@@ -45,17 +45,24 @@ menu_t weather_menu[] =
 	{0, "my weather", 			NULL,		display_myweather,		0, 0, 0},
 	{0, "my sensors",			NULL,		display_all_sensors,	0, 0, 0},
 	{0, "forecast",				NULL,		display_forecast,		0, 0, 0},
-	{0, "bla",				NULL,		NULL,		0, 0, 0},
-	{0, "blub",				NULL,		NULL,		0, 0, 0}
+	{0, "bla",					NULL,		NULL,		0, 0, 0},
+	{0, "blub",					NULL,		NULL,		0, 0, 0}
+};
+
+menu_t system_menu[] =
+{
+	{2, "System", 				mainmenu, 	NULL,					0, 0, 0},
+	{0, "reboot",	  			NULL,     	display_reboot,			0, 0, 0},
+	{0, "halt",   				NULL,     	display_halt,			0, 0, 0}
 };
 
 menu_t mainmenu[] =
 {
-	{3, "Mainmenu", 			NULL,      		NULL, 				0, 0, 0},
+	{4, "Mainmenu", 			NULL,      		NULL, 				0, 0, 0},
 	{0, "Clock",    			clock_menu, 	NULL, 				0, 0, 0},
 	{0, "Weather",  			weather_menu, 	NULL, 				0, 0, 0},
 	{0, "Sysinfo",   			NULL,      		display_sysinfo,	0, 0, 0},
-	{0, "bla",		   			NULL,      		NULL,	0, 0, 0},
+	{0, "System",	   			system_menu,	NULL,	0, 0, 0},
 	{0, "blubb",   				NULL,      		NULL,	0, 0, 0},
 	{0, "etc",   				NULL,      		NULL,	0, 0, 0}
 
@@ -354,7 +361,31 @@ void screensaver_off(void)
 	current_menu.counter_next_refresh = 0;
 }
 
+// ************************************************
+void display_reboot(void)
+{
+	current_display = DISPLAY_REBOOT;
+	OLED_Clear(0x00);
+	GUI_DisString_EN (1, 0, "Reboot?",  &Font16, BLACK, WHITE);
+	GUI_DisString_EN (1, 25, "Cancel --> KEY1",  &Font12, BLACK, WHITE);
+	GUI_DisString_EN (1, 37, "Yes    --> KEY3",  &Font12, BLACK, WHITE);
+	OLED_Display();
+	current_menu.function_display = 0;
+	current_menu.counter_next_refresh = 0;
+}
 
+// ************************************************
+void display_halt(void)
+{
+	current_display = DISPLAY_HALT;
+	OLED_Clear(0x00);
+	GUI_DisString_EN (1, 0, "Halt?",  &Font16, BLACK, WHITE);
+	GUI_DisString_EN (1, 25, "Cancel --> KEY1",  &Font12, BLACK, WHITE);
+	GUI_DisString_EN (1, 37, "Yes    --> KEY3",  &Font12, BLACK, WHITE);
+	OLED_Display();
+	current_menu.function_display = 0;
+	current_menu.counter_next_refresh = 0;
+}
 
 // ************************************************
 uint8_t key_bounce()
@@ -574,8 +605,15 @@ void key_2(void)
 // ************************************************
 void key_3(void) 
 {
-	if (!key_bounce()) {
-		//puts("key_3");
+	if (!key_bounce() && !digitalRead(KEY3_PIN)) {
+		switch (current_display) {
+			case DISPLAY_REBOOT:
+				system("sudo reboot");
+				break;
+			case DISPLAY_HALT:
+				system("sudo shutdown -Ph now");
+				break;
+		}
 	}
 }
 
