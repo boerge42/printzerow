@@ -20,7 +20,8 @@ forecast_t forecast = {0};
 extern menu_pos_t current_menu;
 extern uint8_t current_display;
 
-struct mosquitto *mosq	= NULL;
+// struct mosquitto *mosq	= NULL;
+extern struct mosquitto *mosq;
 
 
 // ************************************************
@@ -162,16 +163,21 @@ void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mo
             get_json_array_string(sysinfo.val[idx].load_1m, j_array, 0);
             get_json_array_string(sysinfo.val[idx].load_5m, j_array, 1);
             get_json_array_string(sysinfo.val[idx].load_15m, j_array, 2);
+            json_object_put(j_array);
             j_obj=json_object_object_get(j_root, "ram");
             get_json_string(sysinfo.val[idx].ram_free, j_obj, "free");
             get_json_string(sysinfo.val[idx].ram_share, j_obj, "share");
             get_json_string(sysinfo.val[idx].ram_buffer, j_obj, "buffer");
             get_json_string(sysinfo.val[idx].ram_total, j_obj, "total");
+            json_object_put(j_obj);
             j_obj=json_object_object_get(j_root, "swap");
             get_json_string(sysinfo.val[idx].swap_free, j_obj, "free");
             get_json_string(sysinfo.val[idx].swap_total, j_obj, "total");
+            json_object_put(j_obj);
             j_obj=json_object_object_get(j_root, "time");
             get_json_string(sysinfo.val[idx].timestamp, j_obj, "readable");
+            json_object_put(j_obj);
+            json_object_put(j_root);
             strremove(sysinfo.val[idx].timestamp, '\\');
             if (current_display == DISPLAY_SYSINFO) current_menu.function_display = 1;
             //puts(sysinfo.val[idx].processes);
@@ -208,6 +214,7 @@ void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mo
             get_json_string(sensors.val[idx].humidity, j_root,     "humidity");
             get_json_string(sensors.val[idx].unixtime, j_root,     "unixtime");
             get_json_string(sensors.val[idx].readable_ts, j_root,  "readable_ts");
+            json_object_put(j_root);
             if (current_display == DISPLAY_ALL_SENSORS) current_menu.function_display = 1;
         } else
 
@@ -227,6 +234,7 @@ void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mo
             get_json_string(myweather.humidity, j_root, "humidity_out");
             get_json_string(myweather.pressure_rel, j_root, "pressure_rel");
             get_json_string(myweather.pressure_rising, j_root, "pressure_rising");
+            json_object_put(j_root);
             myweather.present = 1;
             if (current_display == DISPLAY_MYWEATHER) current_menu.function_display = 1;
         } else
@@ -267,6 +275,8 @@ void my_message_callback(struct mosquitto *mosq, void *userdata, const struct mo
                 get_json_string(forecast.val[i].text, j_array_element, "text");
                 get_json_string(forecast.val[i].code, j_array_element, "code");
             }
+            json_object_put(j_array);
+            json_object_put(j_root);
             forecast.count = MAX_FORECASTDAYS;
             if (current_display == DISPLAY_FORECAST) current_menu.function_display = 1;
         }
@@ -315,9 +325,6 @@ int my_mosquitto_init(char mqtt_host[50], int mqtt_port)
     
     // ...und Feuer
     mosquitto_loop_start(mosq);
-
-
-
 
     return 0;
 }

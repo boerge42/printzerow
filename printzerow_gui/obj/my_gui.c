@@ -70,7 +70,6 @@ menu_t mainmenu[] =
 
 //menu_pos_t current_menu = {mainmenu, 1, 1, DISPLAY_MAXY/MENU_DY-1, display_menu, 1, 0};
 menu_pos_t current_menu = {mainmenu, 1, 1, 3, display_menu, 1, 0};
-	
 
 extern sensors_t sensors;
 extern myweather_t myweather;
@@ -80,6 +79,8 @@ extern sysinfo_t sysinfo;
 uint8_t current_display = DISPLAY_MENU;
 
 uint8_t screensaver_on = 0;
+uint16_t screensaver_counter = 0;
+
 
 // ************************************************
 void display_menu(void)
@@ -141,7 +142,7 @@ void display_clock_digital(void)
 	GUI_DisString_EN (0, 40, (const char *)&buf,  &Font12, FONT_BACKGROUND, WHITE);
 	OLED_Display();
 	current_menu.function_display = 1;
-	current_menu.counter_next_refresh = 200;	// Refresh nach 200ms
+	current_menu.counter_next_refresh = CLOCK_REFRESH_BEAT;	
 }
 
 // ************************************************
@@ -188,7 +189,7 @@ void display_clock_analog(void)
 	GUI_DisString_EN (70, 50, (const char *)&buf,  &Font12, FONT_BACKGROUND, WHITE);
 	OLED_Display();
 	current_menu.function_display = 1;
-	current_menu.counter_next_refresh = 200;	// Refresh nach 200ms
+	current_menu.counter_next_refresh = CLOCK_REFRESH_BEAT;	
 }
 
 // ************************************************
@@ -196,9 +197,6 @@ void display_all_sensors(void)
 {
 	static uint8_t first = 1;
 	char buf[20];
-
-	//sensors_t sensors;
-	//get_sensors(sensors);
 	
 	current_display = DISPLAY_ALL_SENSORS;
 	OLED_Clear(0x00);	
@@ -356,6 +354,7 @@ void display_screensaver(void)
 // ************************************************
 void screensaver_off(void)
 {
+	screensaver_counter = 0;
 	screensaver_on = 0;
 	current_menu.function_display = 1;
 	current_menu.counter_next_refresh = 0;
@@ -390,16 +389,6 @@ void display_halt(void)
 // ************************************************
 uint8_t key_bounce()
 {
-	// diese Funktion wird bei jedem Tastendruck aufgerufen, deshalb
-	// hier Screensaver-Funktionalitaet einbauen...
-	// ...in 60s ohne Taste Display ausschalten
-	start_timer(TIME_SCREENSAVER_ON, &display_screensaver);
-	// ...falls Display aus, wieder einschalten...
-	if (screensaver_on) {
-		screensaver_off();
-		// "Taste prellt"
-		return 1;
-	}
 	// relativ einfach gestrickt: die Zeit zwischen zwei Aufrufen
 	// muss groesser als DEBOUNCE_MS sein:
 	// Return: 0 --> Zeit grosser; 1 --> Zeit kleiner (Taste prellt)
@@ -416,7 +405,8 @@ uint8_t key_bounce()
 void key_up(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY_UP_PIN)) {
-		//puts("key_up");
+		screensaver_off();
+		// puts("key_up");
 
 		switch (current_display) {
 			case DISPLAY_MENU:
@@ -436,12 +426,12 @@ void key_up(void)
 	}
 }
 
-
 // ************************************************
 void key_down(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY_DOWN_PIN)) {
-		//puts("key_down");
+		screensaver_off();
+		// puts("key_down");
 	
 		switch (current_display) {
 			case DISPLAY_MENU:
@@ -466,7 +456,8 @@ void key_down(void)
 void key_left(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY_LEFT_PIN)) {
-		//puts("key_left");
+		screensaver_off();
+		// puts("key_left");
 		switch (current_display) {
 			case DISPLAY_MENU:
 				if (current_menu.menu[0].submenu != NULL) {	
@@ -511,7 +502,8 @@ void key_right(void)
 	// extern sensors_t sensors;
 	
 	if (!key_bounce() && !digitalRead(KEY_RIGHT_PIN)) {
-		//puts("key_right");
+		screensaver_off();
+		// puts("key_right");
 		switch (current_display) {
 			case DISPLAY_MENU:
 				if (current_menu.menu[current_menu.pos].submenu != NULL) {	
@@ -561,7 +553,8 @@ void key_right(void)
 void key_press(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY_PRESS_PIN)) {
-		//puts("key_press");
+		screensaver_off();
+		// puts("key_press");
 
 		switch (current_display) {
 			case DISPLAY_MENU:
@@ -580,12 +573,12 @@ void key_press(void)
 	current_menu.counter_next_refresh = 0;
 }
 
-
 // ************************************************
 void key_1(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY1_PIN)) {
-		//puts("key_1");
+		screensaver_off();
+		// puts("key_1");
 		current_menu.function = display_menu;
 		// Menue anzeigen und Refresh setzen
 		current_menu.function_display = 1;
@@ -593,12 +586,12 @@ void key_1(void)
 	}
 }
 
-
 // ************************************************
 void key_2(void) 
 {
 	if (!key_bounce()) {
-		//puts("key_2");
+		screensaver_off();
+		// puts("key_2");
 	}
 }
 
@@ -606,6 +599,7 @@ void key_2(void)
 void key_3(void) 
 {
 	if (!key_bounce() && !digitalRead(KEY3_PIN)) {
+		screensaver_off();
 		switch (current_display) {
 			case DISPLAY_REBOOT:
 				system("sudo reboot");
@@ -635,8 +629,6 @@ void display_screen(void)
 {
 	// Screensaver an?
 	if (screensaver_on) return;
-	
-	
 	// ist etwas anzuzeigen?
 	if (current_menu.function_display &&        // ja, anzeigen und
 		!current_menu.counter_next_refresh)		// Refresh-Zaehler muss 0 sein
@@ -649,5 +641,11 @@ void display_screen(void)
 	{
 		current_menu.counter_next_refresh--;
 	}
-
+	// Screensaver eventuell einschalten
+	screensaver_counter++;
+	if (screensaver_counter > SCREENSAVER_TIME)
+	{
+		display_screensaver();
+		screensaver_counter = 0;
+	}
 }

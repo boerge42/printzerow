@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/bin/printzerow_gui
+ExecStart=/usr/bin/printzerow_gui -h 10.1.1.82
 
 [Install]
 WantedBy=multi-user.target

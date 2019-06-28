@@ -20,12 +20,15 @@ Have fun!
 #include "OLED_Driver.h"
 #include "OLED_GUI.h"
 #include "DEV_Config.h"
-
 #include "my_mqtt.h"
-
 #include "timer.h"
 
+
 #define DEBOUNCE_MS 50
+
+#define SYSTEMTIMER_BEAT    100  					// 100ms
+#define CLOCK_REFRESH_BEAT  300/SYSTEMTIMER_BEAT	// 300ms
+#define SCREENSAVER_TIME	60000/SYSTEMTIMER_BEAT	// 60000ms --> 60s
 
 
 // ************************************************
@@ -74,14 +77,8 @@ struct menu_pos_t
 #define DISPLAY_HALT		6
 #define DISPLAY_REBOOT		7
 
-#define TIME_SCREENSAVER_ON 60000    // 60s
-
-
 // analoge Uhr
 #define TWO_PI 6.283185307
-
-// forward fuer reboot() aus linux/reboot.h
-int reboot(int magic, int magic2, int cmd, void *arg);
 
 // ************************************************
 // ************************************************
